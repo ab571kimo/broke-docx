@@ -12,10 +12,15 @@ import com.amazonaws.services.s3.model.S3Object;
 
 import model.S3EventParam;
 import service.BrokeDocxService;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import utils.S3EventUtils;
 
 // Handler value: example.HandlerInteger
 public class BrokeDocxController implements RequestHandler<S3Event, String> {
+
+	private final S3Client s3Client = S3Client.builder().build();
 
 	@Override
 	public String handleRequest(S3Event event, Context context) {
@@ -36,9 +41,11 @@ public class BrokeDocxController implements RequestHandler<S3Event, String> {
 		AmazonS3 client = AmazonS3ClientBuilder.standard().build();;
 		S3Object xFile = client.getObject(srcBucket, srcKey);
 		InputStream contents = xFile.getObjectContent();
-		
-		new BrokeDocxService().breakDocx(contents);
-		
+
+		String breakDocx = new BrokeDocxService().breakDocx(contents);
+
+		s3Client.putObject(PutObjectRequest.builder().bucket(srcBucket).key(srcKey+".csv").build(), RequestBody.fromString(breakDocx));
+
 		return srcBucket + "/" + srcKey;
 	}
 }
