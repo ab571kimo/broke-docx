@@ -10,7 +10,7 @@ public class S3EventUtils {
 
     public S3EventParam getS3EventParam(S3Event event,Context context) {
 
-        S3EventNotification.S3EventNotificationRecord record = event.getRecords().getFirst();
+        S3EventNotification.S3EventNotificationRecord record = event.getRecords().get(0);
         String srcBucket = record.getS3().getBucket().getName();
         String srcKey = record.getS3().getObject().getUrlDecodedKey();
         String region = record.getAwsRegion();

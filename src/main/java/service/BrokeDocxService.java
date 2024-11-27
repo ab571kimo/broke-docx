@@ -11,13 +11,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
-public class BreakDocxService {
-	static String compileStr = "^第[零一二三四五六七八九十]{1,3}編";
+public class BrokeDocxService {
+	static String partStr = "^第[零一二三四五六七八九十]{1,3}編";
 	static String chapterStr = "^第[零一二三四五六七八九十]{1,3}章";
 	static String sectionStr = "^第[零一二三四五六七八九十]{1,3}節";
 	static String articleStr = "^第[0-9|-]{1,6}條";
 
-	static Pattern compileReg = Pattern.compile(compileStr);
+	static Pattern partReg = Pattern.compile(partStr);
 	static Pattern chapterReg = Pattern.compile(chapterStr);
 	static Pattern sectionReg = Pattern.compile(sectionStr);
 	static Pattern articleReg = Pattern.compile(articleStr);
@@ -31,8 +31,8 @@ public class BreakDocxService {
 
 		try (XWPFDocument document = new XWPFDocument(stream)) {
 
-			String compile = null;
-			String compileName = null;
+			String part = null;
+			String partName = null;
 
 			String chapter = null;
 			String chapterName = null;
@@ -49,23 +49,23 @@ public class BreakDocxService {
 			for (XWPFParagraph paragraph : paragraphList) {
 				String text = paragraph.getText();
 
-				if (compileReg.matcher(text).find()) {
-					putMap(rtnList, compile, chapter, section, article, sb);
+				if (partReg.matcher(text).find()) {
+					putMap(rtnList, part, chapter, section, article, sb);
 					// 第O編
-					compileName = text.replaceAll(compileStr, "");
-					compile = text.replace(compileName, "");
+					partName = text.replaceAll(partStr, "");
+					part = text.replace(partName, "");
 				} else if (chapterReg.matcher(text).find()) {
-					putMap(rtnList, compile, chapter, section, article, sb);
+					putMap(rtnList, part, chapter, section, article, sb);
 					// 第O章
 					chapterName = text.replaceAll(chapterStr, "");
 					chapter = text.replace(chapterName, "");
 				} else if (sectionReg.matcher(text).find()) {
-					putMap(rtnList, compile, chapter, section, article, sb);
+					putMap(rtnList, part, chapter, section, article, sb);
 					// 第O節
 					sectionName = text.replaceAll(sectionStr, "");
 					section = text.replace(sectionName, "");
 				} else if (articleReg.matcher(text).find()) {
-					putMap(rtnList, compile, chapter, section, article, sb);
+					putMap(rtnList, part, chapter, section, article, sb);
 					// 第O條
 					articleName = text.replaceAll(articleStr, "");
 					article = text.replace(articleName, "");
@@ -75,7 +75,7 @@ public class BreakDocxService {
 					sb.append(text).append("\n");
 				}
 			}
-			putMap(rtnList, compile, chapter, section, article, sb);
+			putMap(rtnList, part, chapter, section, article, sb);
 			System.out.print(rtnList);
 
 		} catch (Exception e) {
@@ -84,12 +84,12 @@ public class BreakDocxService {
 
 	}
 
-	private void putMap(List<Map<String, String>> rtnList, String compile, String chapter, String section,
+	private void putMap(List<Map<String, String>> rtnList, String part, String chapter, String section,
 			String article, StringBuilder sb) {
 		if (on) {
 			// 空值 結算條文
 			Map<String, String> map = new HashMap<>();
-			map.put("編", compile);
+			map.put("編", part);
 			map.put("章", chapter);
 			map.put("節", section);
 			map.put("條", article);
