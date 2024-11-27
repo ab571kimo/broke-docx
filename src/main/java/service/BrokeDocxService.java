@@ -10,9 +10,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BrokeDocxService {
     static String partStr = "^第[零一二三四五六七八九十]{1,3}編";
@@ -118,7 +115,7 @@ public class BrokeDocxService {
                     .append(chapter).append(',')
                     .append(section).append(',')
                     .append(article).append(',')
-                    .append(context).append("\n");
+                    .append(context);
         }
         return sb.toString();
     }

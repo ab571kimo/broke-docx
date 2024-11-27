@@ -6,14 +6,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
 
 import model.S3EventParam;
 import service.BrokeDocxService;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import utils.S3EventUtils;
 
@@ -37,10 +35,17 @@ public class BrokeDocxController implements RequestHandler<S3Event, String> {
 			logger.log("不是docx: " + srcKey);
 			return "不是docx: " + srcKey;
 		}
-		
-		AmazonS3 client = AmazonS3ClientBuilder.standard().build();;
-		S3Object xFile = client.getObject(srcBucket, srcKey);
-		InputStream contents = xFile.getObjectContent();
+
+		// Create the S3 client
+		S3Client s3Client = S3Client.builder().build();
+
+		// Build the GetObjectRequest
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+				.bucket(srcBucket)
+				.key(srcKey)
+				.build();
+
+		InputStream contents = s3Client.getObject(getObjectRequest);
 
 		String breakDocx = new BrokeDocxService().breakDocx(contents);
 
