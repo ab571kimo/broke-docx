@@ -1,5 +1,9 @@
 package service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,12 +14,15 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFPictureData;
+
+import javax.imageio.ImageIO;
 
 public class BrokeDocxService {
     static String partStr = "^第[零一二三四五六七八九十]{1,3}編";
     static String chapterStr = "^第[零一二三四五六七八九十]{1,3}章";
     static String sectionStr = "^第[零一二三四五六七八九十]{1,3}節";
-    static String articleStr = "^第[0-9|-]{1,6}條";
+    static String articleStr = "^第[0-9|-|零一二三四五六七八九十]{1,6}條";
 
     static Pattern partReg = Pattern.compile(partStr);
     static Pattern chapterReg = Pattern.compile(chapterStr);
@@ -31,17 +38,19 @@ public class BrokeDocxService {
 
         try (XWPFDocument document = new XWPFDocument(stream)) {
 
-            String part = null;
-            String partName = null;
+            extractImages(document);
 
-            String chapter = null;
-            String chapterName = null;
+            String part = "";
+            String partName = "";
 
-            String section = null;
-            String sectionName = null;
+            String chapter = "";
+            String chapterName = "";
 
-            String article = null;
-            String articleName = null;
+            String section = "";
+            String sectionName = "";
+
+            String article = "";
+            String articleName = "";
 
             StringBuilder sb = new StringBuilder();
 
@@ -102,7 +111,7 @@ public class BrokeDocxService {
     }
 
     private String formatCsv(List<Map<String, String>> rtnList) {
-
+        System.out.print(rtnList);
         StringBuilder sb = new StringBuilder();
         sb.append("編").append(",章").append(",節").append(",條").append(",內文").append("\n");
         for (Map<String, String> map : rtnList) {
@@ -117,6 +126,26 @@ public class BrokeDocxService {
                     .append(article).append(',')
                     .append(context);
         }
+        //System.out.print(sb.toString());
+
         return sb.toString();
     }
+
+    public static void extractImages(XWPFDocument docx) {
+        try {
+
+            List<XWPFPictureData> piclist = docx.getAllPictures();
+            // traverse through the list and write each image to a file
+
+            for(XWPFPictureData pic :piclist){
+                byte[] bytepic = pic.getData();
+                BufferedImage imag = ImageIO.read(new ByteArrayInputStream(bytepic));
+                ImageIO.write(imag, "jpg", new File("D:/imagefromword/" + pic.getFileName()));
+            }
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    }
+
 }
