@@ -47,9 +47,9 @@ public class BrokeDocxController implements RequestHandler<S3Event, String> {
 
 		InputStream contents = s3Client.getObject(getObjectRequest);
 
-		String breakDocx = new BrokeDocxService().breakDocx(contents);
+		//String breakDocx = new BrokeDocxService().brokeDocx(contents);
 
-		s3Client.putObject(PutObjectRequest.builder().bucket(srcBucket).key(srcKey+".csv").build(), RequestBody.fromString(breakDocx));
+		//s3Client.putObject(PutObjectRequest.builder().bucket(srcBucket).key(srcKey+".csv").build(), RequestBody.fromString(breakDocx));
 
 		return srcBucket + "/" + srcKey;
 	}
