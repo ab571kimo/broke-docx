@@ -40,6 +40,7 @@ public class test {
 					map.put("ORI_CHAPTER_NAME", oriMap.get(key).get("CHAPTER_NAME"));
 					map.put("ORI_SECTION_NAME", oriMap.get(key).get("SECTION_NAME"));
 					map.put("ORI_ARTICLE_NAME", oriMap.get(key).get("ARTICLE_NAME"));
+					map.put("ORI_CONTENT_UUID", oriMap.get(key).get("CONTENT_UUID"));
 					oriMap.remove(key); //從oriMap移除處理過的key
 				}
 			}
@@ -53,10 +54,14 @@ public class test {
 				map.put("ORI_CHAPTER_NAME",map.get("CHAPTER_NAME"));
 				map.put("ORI_SECTION_NAME",map.get("SECTION_NAME"));
 				map.put("ORI_ARTICLE_NAME",map.get("ARTICLE_NAME"));
+				map.put("ORI_CONTENT_UUID", map.get("CONTENT_UUID"));
+				map.put("ORI_CONTENT", map.get("CONTENT"));
 				map.remove("PART_NAME");
 				map.remove("CHAPTER_NAME");
 				map.remove("SECTION_NAME");
 				map.remove("ARTICLE_NAME");
+				map.remove("CONTENT_UUID");
+				map.remove("CONTENT");
 
 				//將map插入NEW_D620List
 				int serNo = Integer.parseInt(map.get("SER_NO"));
@@ -70,7 +75,12 @@ public class test {
 
 			}
 
-int ii = 0;
+			int o = 1;
+			for (Map<String, String> map : NEW_D620List) {
+				map.put("SER_NO", Integer.toString(o));
+				o++;
+				System.out.println(map);
+			}
 
 
 		}catch(Exception e) {
