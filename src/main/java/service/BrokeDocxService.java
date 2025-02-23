@@ -2,10 +2,7 @@ package service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -122,4 +119,71 @@ public class BrokeDocxService {
 
     }
 
+
+    public List<Map<String, String>> compareRKB_INR(List<Map<String, String>> ORI_D620List, List<Map<String, String>> NEW_D620List) {
+
+        //NEW_D620來源可從檔案或DTXRD621，ORI_D620為資料庫DTXRD620
+//僅比對新舊文字，若NEW_D620來源為資料庫則有UUID，若為檔案拆條則無
+// ORI_D620比對NEW_D620，找到相同的文字合併為同一列，不同文字則新增一列至NEW_D620
+// ORI_D620內的ORI_CONTENT_UUID，合併時不放入
+
+        if (ORI_D620List == null || ORI_D620List.isEmpty()) {
+            return NEW_D620List;
+        }
+
+//將ORI_D620List[i].CONTENT逐筆取出，組出新Map
+        Map<String,Map<String, String>> oriMap = new LinkedHashMap<>();
+        for(Map<String, String> map : ORI_D620List){
+            oriMap.put(map.get("CONTENT"),map);
+        }
+
+//逐筆讀NEW_D620List，確認NEW_D620List[i].CONTENT是否出現在oriMap
+        for(Map<String, String> map : NEW_D620List){
+            String key = map.get("CONTENT");
+            if(oriMap.containsKey(key)){
+                //有舊條文關聯
+                map.put("ORI_PART_NAME", oriMap.get(key).get("PART_NAME"));
+                map.put("ORI_CHAPTER_NAME", oriMap.get(key).get("CHAPTER_NAME"));
+                map.put("ORI_SECTION_NAME", oriMap.get(key).get("SECTION_NAME"));
+                map.put("ORI_ARTICLE_NAME", oriMap.get(key).get("ARTICLE_NAME"));
+                map.put("ORI_CONTENT ", oriMap.get(key).get("CONTENT"));
+                map.put("ORI_CONTENT_UUID", oriMap.get(key).get("CONTENT_UUID"));
+//繼承舊條文UUID
+                map.put("CONTENT_UUID", oriMap.get(key).get("CONTENT_UUID"));
+                oriMap.remove(key); //從oriMap移除處理過的key
+            }
+        }
+//用oriMap.keySet讀出剩餘的value，並放入NEW_D620List
+        int newListSize = NEW_D620List.size();
+        int i = 0;
+
+        for(String key :oriMap.keySet()){
+//把條文標記為舊條文
+            Map<String, String> map = oriMap.get(key);
+            map.put("ORI_PART_NAME",map.get("PART_NAME"));
+            map.put("ORI_CHAPTER_NAME",map.get("CHAPTER_NAME"));
+            map.put("ORI_SECTION_NAME",map.get("SECTION_NAME"));
+            map.put("ORI_ARTICLE_NAME",map.get("ARTICLE_NAME"));
+            map.put("ORI_CONTENT_UUID", map.get("CONTENT_UUID"));
+            map.put("ORI_CONTENT", map.get("CONTENT"));
+            map.remove("PART_NAME");
+            map.remove("CHAPTER_NAME");
+            map.remove("SECTION_NAME");
+            map.remove("ARTICLE_NAME");
+            map.remove("CONTENT_UUID");
+            map.remove("CONTENT");
+
+            //將map插入NEW_D620List
+            int serNo = Integer.parseInt(map.get("SER_NO"));
+
+            if(serNo > newListSize){
+                NEW_D620List.add(map);
+            }else{
+                NEW_D620List.add(serNo+i,map);
+                i++;
+            }
+        }
+
+        return NEW_D620List;
+    }
 }
