@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import service.BrokeDocxService;
+import service.OriLaw;
 
 public class test {
 
@@ -16,6 +17,10 @@ public class test {
         //國泰世華商業銀行_民法準則.docx
         //D:\人壽供測試用內規\供測試用內規\紅利分配辦法.docx
         try {
+
+            new OriLaw().run();
+
+
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
             byte[] encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
             FileInputStream inputStream = new FileInputStream(file);
