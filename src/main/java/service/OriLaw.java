@@ -5,10 +5,12 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import lombok.Data;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -17,6 +19,10 @@ public class OriLaw {
     Timestamp now = new Timestamp(System.currentTimeMillis());
 
     public void run() throws Exception {
+
+        String ORI_FILE_PATH = "D:/testRKB/File/"; //extMap.get("FILE_PATH") + "File/"; TODO
+
+        String FILE_PATH = "D:/testRKB/File2/"; //XR_Z10600.parseFILE_PATH("XRR0B071"); TODO
 
         //每一份檔案代表一部法規，內含多版本
         File fileJ = new File("D:\\FL000565.json");
@@ -65,58 +71,26 @@ public class OriLaw {
             List<Map> ConversionFile = MapUtils.getObject(Data, "ConversionFile", new ArrayList<>());
             List<Map> AttachmentFiles = MapUtils.getObject(Data, "AttachmentFiles", new ArrayList<>());
 
-            int i = 0;
-            for (Map map : ConversionFile) {
-                Map D710 = new LinkedHashMap();
-                D710.put("COMP_ID", "00");
-
-                String FileID = MapUtils.getString(map, "FileID");
-                String FileName = MapUtils.getString(map, "FileName");
-                String FileExtension = MapUtils.getString(map, "FileExtension");
-
-                String FullName = FileName + '.' + FileExtension;
-
-                //取得FILE_ID
-                //String FILE_ID = XR_Z0Z002().getFILE_ID(DATE.today());
-
-                //將舊檔案移到指定位置 TODO
-                //舊檔案位置 = ORI_FILE_PATH + FileName + '.' + FileExtension
-                //新檔案位置 = FILE_PATH + FileID + '.' + FileExtension
-
-                D710.put("RKB_EXT_NO", RKB_EXT_NO);
-                D710.put("FILE_NAME", FullName);
-                D710.put("FILE_TYPE", "00");
-                D710.put("IS_CONTENT", map.get("isContentFile"));
-                D710.put("FILE_URL", map.get("FileUrl"));
-                D710.put("SER_NO", i);
-                D710.put("SOURCE_ID", map.get("FileID"));
-                D710.put("EDIT_TIME", map.get("EditTime"));
-                D710.put("LST_PROC_ID", "XRR0_B071");
-                D710.put("LST_PROC_NAME", "XRR0_B071");
-                D710.put("LST_PROC_DIV_NO", "XRR0_B071");
-                D710.put("LST_PROC_DIV_NAME", "XRR0_B071");
-                D710.put("LST_PROC_TIME", now);
-
-                if (LatestVersion) {
-                    //現行法規
-                    D710.put("CREATE_FLOW_NO", FLOW_NO);
-                    D710List.add(D700);
-                } else {
-                    //歷史法規
-                    D710.put("FLOW_NO", FLOW_NO);
-                    D711List.add(D700);
-                }
-
-                Map Z600 = new LinkedHashMap();
-                Z600.put("RKB_LAW_NO", RKB_EXT_NO);
-                //Z600.put("FILE_ID",FILE_ID);
-                //Z600.put("FILE_PATH",FILE_PATH);
-                //Z600.put("FILE_EXT",FILE_EXT);
-                Z600.put("CREATE_TIME", now);
-                Z600List.add(Z600);
-
-                i++;
+            Map<String, List<Map>> rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, ConversionFile, "00");
+            if (LatestVersion) {
+                //現行法規
+                D710List.addAll(rtnMap.get("D710List"));
+            } else {
+                //歷史法規
+                D711List.addAll(rtnMap.get("D710List"));
             }
+            Z600List.addAll(rtnMap.get("Z600List"));
+
+            rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "01");
+            if (LatestVersion) {
+                //現行法規
+                D710List.addAll(rtnMap.get("D710List"));
+            } else {
+                //歷史法規
+                D711List.addAll(rtnMap.get("D710List"));
+            }
+            Z600List.addAll(rtnMap.get("Z600List"));
+
 
             List<Map> LawArticles = MapUtils.getObject(Data, "LawArticles", new ArrayList<>());
 
@@ -157,7 +131,7 @@ public class OriLaw {
         Map D700 = new LinkedHashMap();
         D700.put("COMP_ID", "00");
         D700.put("RKB_EXT_NO", RKB_EXT_NO);
-        D700.put("LST_FLOW_NO", FLOW_NO);
+        D700.put("FLOW_NO", FLOW_NO);
         D700.put("EXT_NAME", Data.get("LawName"));
 
         Map<String, String> Level = MapUtils.getMap(Data, "Level");
@@ -323,7 +297,7 @@ public class OriLaw {
                 D730.put("RKB_EXT_NO", RKB_EXT_NO);
                 D730.put("CONTENT_UUID", CONTENT_UUID);
                 D730.put("CONTENT", map.get("CONTENT"));
-                D730.put("CREATE_FLOW_NO", FLOW_NO);
+                D730.put("FLOW_NO", FLOW_NO);
                 D730.put("LST_PROC_ID", "XRR0_B071");
                 D730.put("LST_PROC_NAME", "XRR0_B071");
                 D730.put("LST_PROC_DIV_NO", "XRR0_B071");
@@ -364,4 +338,64 @@ public class OriLaw {
             }
         });
     }
+
+    public Map<String, List<Map>> processFileList(String RKB_EXT_NO, String FLOW_NO, String FILE_PATH, String ORI_FILE_PATH, List<Map> fileList, String FILE_TYPE) throws IOException {
+
+        Map<String, List<Map>> rtnMap = new HashMap();
+        List<Map> D710List = new ArrayList<>();
+        List<Map> Z600List = new ArrayList<>();
+
+        for (Map map : fileList) {
+            Map D710 = new LinkedHashMap();
+            D710.put("COMP_ID", "00");
+
+            String FileID = MapUtils.getString(map, "FileID");
+            String FileName = MapUtils.getString(map, "FileName");
+            String FileExtension = MapUtils.getString(map, "FileExtension");
+
+            String FullName = FileName + '.' + FileExtension;
+
+            //取得FILE_ID
+            String FILE_ID = "TEST_FILEID" ;//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
+
+            //將舊檔案複製到指定位置 TODO
+            String ORI_FULL_PATH = ORI_FILE_PATH + FileName + '.' + FileExtension;
+            String NEW_FULL_PATH = FILE_PATH + FILE_ID + '.' + FileExtension;
+            File orifile = new File(ORI_FULL_PATH);
+            File newfile = new File(NEW_FULL_PATH);
+            FileUtils.copyFile(orifile, newfile);
+
+            D710.put("RKB_EXT_NO", RKB_EXT_NO);
+            D710.put("FILE_ID", FILE_ID);
+            D710.put("FILE_NAME", FullName);
+            D710.put("FILE_TYPE", FILE_TYPE);
+            D710.put("IS_CONTENT", map.get("isContentFile"));
+            D710.put("FILE_URL", map.get("FileUrl"));
+            //D710.put("SER_NO", i);
+            D710.put("SOURCE_ID", map.get("FileID"));
+            D710.put("EDIT_TIME", map.get("EditTime"));
+            D710.put("LST_PROC_ID", "XRR0_B071");
+            D710.put("LST_PROC_NAME", "XRR0_B071");
+            D710.put("LST_PROC_DIV_NO", "XRR0_B071");
+            D710.put("LST_PROC_DIV_NAME", "XRR0_B071");
+            D710.put("LST_PROC_TIME", now);
+
+            D710.put("FLOW_NO", FLOW_NO);
+            D710List.add(D710);
+
+            Map Z600 = new LinkedHashMap();
+            Z600.put("RKB_LAW_NO", RKB_EXT_NO);
+            Z600.put("FILE_ID", FILE_ID);
+            Z600.put("FILE_PATH", FILE_PATH);
+            Z600.put("FILE_EXT", FileExtension);
+            Z600.put("CREATE_TIME", now);
+            Z600List.add(Z600);
+            ;
+        }
+
+        rtnMap.put("Z600List", Z600List);
+        rtnMap.put("D710List", D710List);
+        return rtnMap;
+    }
+
 }
