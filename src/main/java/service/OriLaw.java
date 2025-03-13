@@ -166,8 +166,22 @@ public class OriLaw {
         D700.put("FOREWORD", Data.get("Foreword"));
 
         List<Map<String, String>> Unit = MapUtils.getObject(Data, "Unit", new ArrayList<>());
-        D700.put("COMP_AUTH_ID", Unit.get(0).get("ID"));
-        D700.put("COMP_AUTH_NAME", Unit.get(0).get("Name"));
+        StringBuilder COMP_AUTH_ID = new StringBuilder();
+        StringBuilder COMP_AUTH_NAME = new StringBuilder();
+        for(Map map :Unit){
+            COMP_AUTH_ID.append(map.get("ID")).append(',');
+            COMP_AUTH_NAME.append(map.get("Name")).append(',');
+        }
+        if (COMP_AUTH_ID.toString().endsWith(",")) {
+            COMP_AUTH_ID.deleteCharAt(COMP_AUTH_ID.length() - 1);
+
+        }
+        if (COMP_AUTH_NAME.toString().endsWith(",")) {
+            COMP_AUTH_NAME.deleteCharAt(COMP_AUTH_NAME.length() - 1);
+
+        }
+        D700.put("COMP_AUTH_ID", COMP_AUTH_ID.toString());
+        D700.put("COMP_AUTH_NAME", COMP_AUTH_NAME.toString());
 
         D700.put("REASONS", Data.get("LegislativeReasons"));
 
@@ -201,9 +215,9 @@ public class OriLaw {
 
             //將附件資訊抽出另外處理
             List<Map> files = MapUtils.getObject(map, "AttachmentFiles", new ArrayList());
-            for(Map fileMap :files){
+            for (Map fileMap : files) {
                 //把每一筆資料押入法條內容
-                fileMap.put("ARTICLE_SOURCE",map.get("Title"));
+                fileMap.put("ARTICLE_SOURCE", map.get("Title"));
             }
             AttachmentFiles.addAll(files);
 
@@ -218,6 +232,7 @@ public class OriLaw {
                 case 5:
                     levelMap.put(LawLevel + "_Title", map.get("Title"));
                     levelMap.put(LawLevel + "_Data", map.get("Data"));
+                    levelMap.put(LawLevel, MapUtils.getInteger(levelMap, LawLevel, 0) + 1);
                     continue;
                 case 9:
                     break;
@@ -229,14 +244,19 @@ public class OriLaw {
             D720.put("RKB_EXT_NO", RKB_EXT_NO);
             D720.put("SER_NO", map.get("No"));
 
+            D720.put("PART", levelMap.get(1));
             D720.put("PART_NAME", levelMap.get("1_Title"));
             D720.put("PART_MEMO", levelMap.get("1_Data"));
+            D720.put("CHAPTER", levelMap.get(2));
             D720.put("CHAPTER_NAME", levelMap.get("2_Title"));
             D720.put("CHAPTER_MEMO", levelMap.get("2_Data"));
+            D720.put("SECTION", levelMap.get(3));
             D720.put("SECTION_NAME", levelMap.get("3_Title"));
             D720.put("SECTION_MEMO", levelMap.get("3_Data"));
+            D720.put("CLAUSE", levelMap.get(4));
             D720.put("CLAUSE_NAME", levelMap.get("4_Title"));
             D720.put("CLAUSE_MEMO", levelMap.get("4_Data"));
+            D720.put("ITEM", levelMap.get(5));
             D720.put("ITEM_NAME", levelMap.get("5_Title"));
             D720.put("ITEM_MEMO", levelMap.get("5_Data"));
 
