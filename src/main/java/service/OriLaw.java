@@ -98,7 +98,8 @@ public class OriLaw {
             this.sortLawArticles(LawArticles);
 
             //將LawArticles整理為D720清單
-            List<Map> theD720List = this.lawArticlesToD720List(RKB_EXT_NO, FLOW_NO, LawArticles);
+            Map<String, List<Map>> lawArticlesMap = this.lawArticlesToD720List(RKB_EXT_NO, FLOW_NO, LawArticles);
+            List<Map> theD720List = lawArticlesMap.get("D720List");
 
             //將前一版條文移置舊版List
             oriLawList.clear();
@@ -120,6 +121,18 @@ public class OriLaw {
             List<Map> theD730List = this.compareLawArticles(RKB_EXT_NO, FLOW_NO, oriLawList, newLawList);
 
             D730List.addAll(theD730List);
+
+            //處理附件
+            List<Map> theAttachmentFiles = lawArticlesMap.get("AttachmentFiles");
+            rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, theAttachmentFiles, "02");
+            if (LatestVersion) {
+                //現行法規
+                D710List.addAll(rtnMap.get("D710List"));
+            } else {
+                //歷史法規
+                D711List.addAll(rtnMap.get("D710List"));
+            }
+            Z600List.addAll(rtnMap.get("Z600List"));
 
         }
         int x = 0;
@@ -176,14 +189,25 @@ public class OriLaw {
         return D700;
     }
 
-    public List<Map> lawArticlesToD720List(String RKB_EXT_NO, String FLOW_NO, List<Map> LawArticles) throws Exception {
+    public Map<String, List<Map>> lawArticlesToD720List(String RKB_EXT_NO, String FLOW_NO, List<Map> LawArticles) throws Exception {
 
         Map levelMap = new HashMap();
 
-        List<Map> rtnList = new ArrayList();
-        for (Map map : LawArticles) {
-            Map D720 = new LinkedHashMap();
+        Map<String, List<Map>> rtnMap = new HashMap();
+        List<Map> D720List = new ArrayList();
+        List<Map> AttachmentFiles = new ArrayList();
 
+        for (Map map : LawArticles) {
+
+            //將附件資訊抽出另外處理
+            List<Map> files = MapUtils.getObject(map, "AttachmentFiles", new ArrayList());
+            for(Map fileMap :files){
+                //把每一筆資料押入法條內容
+                fileMap.put("ARTICLE_SOURCE",map.get("Title"));
+            }
+            AttachmentFiles.addAll(files);
+
+            Map D720 = new LinkedHashMap();
             //確認層級，若非條文則僅記錄標題
             int LawLevel = MapUtils.getInteger(map, "Level");
             switch (LawLevel) {
@@ -237,12 +261,13 @@ public class OriLaw {
             D720.put("LST_PROC_TIME", now);
 
             D720.put("FLOW_NO", FLOW_NO);
-
-            rtnList.add(D720);
-
-
+            D720List.add(D720);
         }
-        return rtnList;
+
+        rtnMap.put("D720List", D720List);
+        rtnMap.put("AttachmentFiles", AttachmentFiles);
+
+        return rtnMap;
     }
 
     private void sortLawArticles(List<Map> LawArticles) {
@@ -356,7 +381,7 @@ public class OriLaw {
             String FullName = FileName + '.' + FileExtension;
 
             //取得FILE_ID
-            String FILE_ID = "TEST_FILEID" ;//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
+            String FILE_ID = UUID.randomUUID().toString();//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
 
             //將舊檔案複製到指定位置 TODO
             String ORI_FULL_PATH = ORI_FILE_PATH + FileName + '.' + FileExtension;
@@ -369,6 +394,7 @@ public class OriLaw {
             D710.put("FILE_ID", FILE_ID);
             D710.put("FILE_NAME", FullName);
             D710.put("FILE_TYPE", FILE_TYPE);
+            D710.put("ARTICLE_SOURCE", map.get("ARTICLE_SOURCE"));
             D710.put("IS_CONTENT", map.get("isContentFile"));
             D710.put("FILE_URL", map.get("FileUrl"));
             //D710.put("SER_NO", i);
@@ -390,7 +416,7 @@ public class OriLaw {
             Z600.put("FILE_EXT", FileExtension);
             Z600.put("CREATE_TIME", now);
             Z600List.add(Z600);
-            ;
+
         }
 
         rtnMap.put("Z600List", Z600List);

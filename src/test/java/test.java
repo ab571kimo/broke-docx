@@ -18,6 +18,11 @@ public class test {
         //D:\人壽供測試用內規\供測試用內規\紅利分配辦法.docx
         try {
 
+            System.out.println(UUID.randomUUID().toString());;
+            System.out.println(UUID.randomUUID().toString());;
+            System.out.println(UUID.randomUUID().toString());;
+
+
             new OriLaw().run();
 
 
@@ -49,7 +54,7 @@ public class test {
 
             NEW_D620List.get(3).put("ORI_CONTENT_UUID", "3");
 
-            List<Map<String, String>> rtnList = BreakDocxService.compareRKB_INR(ORI_D620List, NEW_D620List);
+            List<Map<String, String>> rtnList = BreakDocxService.compareRKB_INR(ORI_D620List, new ArrayList());
 
 
             int o = 1;
