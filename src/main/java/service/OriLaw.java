@@ -42,6 +42,7 @@ public class OriLaw {
         List<Map> D720List = new ArrayList();
         List<Map> D721List = new ArrayList();
         List<Map> D730List = new ArrayList();
+        List<Map> D800List = new ArrayList();
         List<Map> Z600List = new ArrayList();
 
         List<Map> oriLawList = new ArrayList();
@@ -60,12 +61,15 @@ public class OriLaw {
             //LatestVersion 現行法規
             boolean LatestVersion = MapUtils.getBoolean(Data, "LatestVersion");
             if (LatestVersion) {
-                //現行法規
+                //現行法規額外處理
                 D700List.add(D700);
-            } else {
-                //歷史法規
-                D701List.add(D700);
+                D800List.add(mapToD800(D700));
+                //這筆資料待關聯
+                D700.put("STATUS","02");
             }
+            //歷史法規
+            D701List.add(D700);
+
 
             //處理法規附件
             List<Map> ConversionFile = MapUtils.getObject(Data, "ConversionFile", new ArrayList<>());
@@ -75,20 +79,18 @@ public class OriLaw {
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
-            } else {
-                //歷史法規
-                D711List.addAll(rtnMap.get("D710List"));
             }
+            //歷史法規
+            D711List.addAll(rtnMap.get("D710List"));
             Z600List.addAll(rtnMap.get("Z600List"));
 
             rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "01");
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
-            } else {
-                //歷史法規
-                D711List.addAll(rtnMap.get("D710List"));
             }
+            //歷史法規
+            D711List.addAll(rtnMap.get("D710List"));
             Z600List.addAll(rtnMap.get("Z600List"));
 
 
@@ -111,10 +113,10 @@ public class OriLaw {
             if (LatestVersion) {
                 //現行法規
                 D720List.addAll(theD720List);
-            } else {
-                //歷史法規
-                D721List.addAll(theD720List);
             }
+            //歷史法規
+            D721List.addAll(theD720List);
+
 
             //比對新舊法規，newLawList新增的法規加上UUID，既有的法規繼承UUID
             //新增的法規回傳為D730
@@ -128,10 +130,9 @@ public class OriLaw {
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
-            } else {
-                //歷史法規
-                D711List.addAll(rtnMap.get("D710List"));
             }
+            //歷史法規
+            D711List.addAll(rtnMap.get("D710List"));
             Z600List.addAll(rtnMap.get("Z600List"));
 
         }
@@ -164,11 +165,12 @@ public class OriLaw {
         D700.put("REPEAL_DATE", Data.get("RepealDate"));
         D700.put("REG_HISTORY", Data.get("Source"));
         D700.put("FOREWORD", Data.get("Foreword"));
+        D700.put("SOURCE_ID", Data.get("ID"));
 
         List<Map<String, String>> Unit = MapUtils.getObject(Data, "Unit", new ArrayList<>());
         StringBuilder COMP_AUTH_ID = new StringBuilder();
         StringBuilder COMP_AUTH_NAME = new StringBuilder();
-        for(Map map :Unit){
+        for (Map map : Unit) {
             COMP_AUTH_ID.append(map.get("ID")).append(',');
             COMP_AUTH_NAME.append(map.get("Name")).append(',');
         }
@@ -194,6 +196,7 @@ public class OriLaw {
         boolean LatestVersion = MapUtils.getBoolean(Data, "LatestVersion");
         String ACTIVE = LatestVersion ? "0" : "1";
 
+        D700.put("STATUS", "10");
         D700.put("ACTIVE", ACTIVE);
         D700.put("LST_PROC_ID", "XRR0_B071");
         D700.put("LST_PROC_NAME", "XRR0_B071");
@@ -201,6 +204,34 @@ public class OriLaw {
         D700.put("LST_PROC_DIV_NAME", "XRR0_B071");
         D700.put("LST_PROC_TIME", now);
         return D700;
+    }
+
+    public Map mapToD800(Map D700Map) {
+
+        //處理D700
+        Map D800 = new HashMap();
+        D800.put("COMP_ID", D700Map.get("COMP_ID"));
+        D800.put("RKB_LAW_NO", D700Map.get("RKB_EXT_NO"));
+        D800.put("FLOW_NO", D700Map.get("FLOW_NO"));
+        D800.put("FLOW_STATUS", "03");
+
+        D800.put("TODO_EMP_ID", "SYSTEM");
+        D800.put("TODO_EMP_NAME", "SYSTEM");
+        D800.put("TODO_DIV_NO", "SYSTEM");
+        D800.put("TODO_DIV_NAME", "SYSTEM");
+
+        D800.put("CREATE_TIME", now);
+        D800.put("CREATE_EMP_ID", "XRR0_B071");
+        D800.put("CREATE_EMP_NAME", "XRR0_B071");
+        D800.put("CREATE_DIV_NO", "XRR0_B071");
+        D800.put("CREATE_DIV_NAME", "XRR0_B071");
+
+        D800.put("LST_PROC_ID", "XRR0_B071");
+        D800.put("LST_PROC_NAME", "XRR0_B071");
+        D800.put("LST_PROC_DIV_NO", "XRR0_B071");
+        D800.put("LST_PROC_DIV_NAME", "XRR0_B071");
+        D800.put("LST_PROC_TIME", now);
+        return D800;
     }
 
     public Map<String, List<Map>> lawArticlesToD720List(String RKB_EXT_NO, String FLOW_NO, List<Map> LawArticles) throws Exception {
@@ -235,6 +266,7 @@ public class OriLaw {
                     levelMap.put(LawLevel, MapUtils.getInteger(levelMap, LawLevel, 0) + 1);
                     continue;
                 case 9:
+                    levelMap.put(LawLevel, MapUtils.getInteger(levelMap, LawLevel, 0) + 1);
                     break;
                 default:
                     throw new Exception("出現未知層級");
@@ -262,6 +294,7 @@ public class OriLaw {
 
 
             //條號和註解法源沒拆分
+            D720.put("ARTICLE", levelMap.get(9));
             D720.put("ARTICLE_NAME", map.get("Title"));
             D720.put("ARTICLE_MEMO", map.get("Title"));
 

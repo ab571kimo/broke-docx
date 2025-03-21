@@ -29,15 +29,19 @@ public class BrokeDocxService {
 
         XWPFDocument document = new XWPFDocument(stream);
 
+        Integer part = 0;
         String partName = "";
         String partMemo = "";
 
+        Integer chapter = 0;
         String chapterName = "";
         String chapterMemo = "";
 
+        Integer section = 0;
         String sectionName = "";
         String sectionMemo = "";
 
+        Integer article = 0;
         String articleName = "";
         String articleMemo = "";
 
@@ -48,41 +52,45 @@ public class BrokeDocxService {
             String text = paragraph.getText();
 
             if (partReg.matcher(text).find()) {
-                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, sb, on);
+                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, part.toString(), chapter.toString(), section.toString(), article.toString(), sb, on);
                 on = false;
                 // 第O編
                 partMemo = text.replaceAll(partStr, "");
                 partName = text.replace(partMemo, "");
+                part++;
             } else if (chapterReg.matcher(text).find()) {
-                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, sb, on);
+                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, part.toString(), chapter.toString(), section.toString(), article.toString(), sb, on);
                 on = false;
                 // 第O章
                 chapterMemo = text.replaceAll(chapterStr, "");
                 chapterName = text.replace(chapterMemo, "");
+                chapter++;
             } else if (sectionReg.matcher(text).find()) {
-                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, sb, on);
+                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, part.toString(), chapter.toString(), section.toString(), article.toString(), sb, on);
                 on = false;
                 // 第O節
                 sectionMemo = text.replaceAll(sectionStr, "");
                 sectionName = text.replace(sectionMemo, "");
+                section++;
             } else if (articleReg.matcher(text).find()) {
-                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, sb, on);
+                putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, part.toString(), chapter.toString(), section.toString(), article.toString(), sb, on);
                 // 第O條
                 articleMemo = text.replaceAll(articleStr, "");
                 articleName = text.replace(articleMemo, "");
+                article++;
                 on = true;
             } else if (StringUtils.isNoneBlank(text) && on) {
                 // 條文內容，條文開始計算才寫入
                 sb.append(text).append("\n");
             }
         }
-        putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, sb, on);
+        putMap(rtnList, partName, partMemo, chapterName, chapterMemo, sectionName, sectionMemo, articleName, articleMemo, part.toString(), chapter.toString(), section.toString(), article.toString(), sb, on);
 
         int i = 1;
         for (Map<String, String> map : rtnList) {
             map.put("SER_NO", Integer.toString(i));
             i++;
-            //System.out.println(map);
+            System.out.println(map);
         }
 
         return rtnList;
@@ -97,6 +105,10 @@ public class BrokeDocxService {
                         String section_memo,
                         String article_name,
                         String article_memo,
+                        String part,
+                        String chapter,
+                        String section,
+                        String article,
                         StringBuilder sb, boolean on) {
 
         if (!on) {
@@ -105,6 +117,10 @@ public class BrokeDocxService {
 
         // 空值 結算條文
         Map<String, String> map = new HashMap<>();
+        map.put("PART", part);
+        map.put("CHAPTER", chapter);
+        map.put("SECTION", section);
+        map.put("ARTICLE", article);
         map.put("PART_NAME", part_name.trim());
         map.put("CHAPTER_NAME", chapter_name.trim());
         map.put("SECTION_NAME", section_name.trim());
@@ -132,15 +148,15 @@ public class BrokeDocxService {
         }
 
 //將ORI_D620List[i].CONTENT逐筆取出，組出新Map
-        Map<String,Map<String, String>> oriMap = new LinkedHashMap<>();
-        for(Map<String, String> map : ORI_D620List){
-            oriMap.put(map.get("CONTENT"),map);
+        Map<String, Map<String, String>> oriMap = new LinkedHashMap<>();
+        for (Map<String, String> map : ORI_D620List) {
+            oriMap.put(map.get("CONTENT"), map);
         }
 
 //逐筆讀NEW_D620List，確認NEW_D620List[i].CONTENT是否出現在oriMap
-        for(Map<String, String> map : NEW_D620List){
+        for (Map<String, String> map : NEW_D620List) {
             String key = map.get("CONTENT");
-            if(oriMap.containsKey(key)){
+            if (oriMap.containsKey(key)) {
                 //有舊條文關聯
                 map.put("ORI_PART_NAME", oriMap.get(key).get("PART_NAME"));
                 map.put("ORI_CHAPTER_NAME", oriMap.get(key).get("CHAPTER_NAME"));
@@ -157,13 +173,13 @@ public class BrokeDocxService {
         int newListSize = NEW_D620List.size();
         int i = 0;
 
-        for(String key :oriMap.keySet()){
+        for (String key : oriMap.keySet()) {
 //把條文標記為舊條文
             Map<String, String> map = oriMap.get(key);
-            map.put("ORI_PART_NAME",map.get("PART_NAME"));
-            map.put("ORI_CHAPTER_NAME",map.get("CHAPTER_NAME"));
-            map.put("ORI_SECTION_NAME",map.get("SECTION_NAME"));
-            map.put("ORI_ARTICLE_NAME",map.get("ARTICLE_NAME"));
+            map.put("ORI_PART_NAME", map.get("PART_NAME"));
+            map.put("ORI_CHAPTER_NAME", map.get("CHAPTER_NAME"));
+            map.put("ORI_SECTION_NAME", map.get("SECTION_NAME"));
+            map.put("ORI_ARTICLE_NAME", map.get("ARTICLE_NAME"));
             map.put("ORI_CONTENT_UUID", map.get("CONTENT_UUID"));
             map.put("ORI_CONTENT", map.get("CONTENT"));
             map.remove("PART_NAME");
@@ -176,10 +192,10 @@ public class BrokeDocxService {
             //將map插入NEW_D620List
             int serNo = Integer.parseInt(map.get("SER_NO"));
 
-            if(serNo > newListSize){
+            if (serNo > newListSize) {
                 NEW_D620List.add(map);
-            }else{
-                NEW_D620List.add(serNo+i,map);
+            } else {
+                NEW_D620List.add(serNo + i, map);
                 i++;
             }
         }

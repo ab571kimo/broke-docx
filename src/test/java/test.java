@@ -1,5 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.util.*;
 
 import org.apache.commons.codec.binary.Base64;
@@ -18,10 +17,44 @@ public class test {
         //D:\人壽供測試用內規\供測試用內規\紅利分配辦法.docx
         try {
 
-            System.out.println(UUID.randomUUID().toString());;
-            System.out.println(UUID.randomUUID().toString());;
-            System.out.println(UUID.randomUUID().toString());;
+            //String folderPath = "D:/OneDrive_1_2025-3-14 - 複製/";  // 修改為你的目錄路徑
+ /*           String folderPath = "D:/OneDrive_1_2025-3-14 - 複製/";  // 修改為你的目錄路徑
+            String outputFilePath = folderPath + File.separator + "merged_output.txt";
 
+            File folder = new File(folderPath);
+            File[] files = folder.listFiles();
+
+            //for(int i = 0;i<files.length;i++){
+            for(File file : files){
+
+                if (file.isFile() && file.getName().toLowerCase().endsWith(".doc")) {
+                    System.out.println("非docx " + file.getName());
+                    continue;
+                }
+
+                FileInputStream inputStream = new FileInputStream(file);
+                BrokeDocxService BreakDocxService = new BrokeDocxService();
+
+
+                List<Map<String, String>> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
+
+                String filePath = folderPath + file.getName() +".txt";
+
+                // 寫入 TXT 檔案
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                    for (Map<String, String> map : ORI_D620List) {
+                        // 每個 Map 寫成一行
+                        writer.write(map.toString());
+                        writer.newLine(); // 換行
+                        writer.newLine(); // 換行
+                    }
+                    System.out.println("檔案寫入成功: " + filePath);
+                } catch (Exception e) {
+                    System.out.println(file.getName() +e.getMessage());
+                }
+
+            }
+*/
 
             new OriLaw().run();
 
