@@ -6,6 +6,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import service.BrokeDocxService;
+import service.Interpertation;
 import service.OriLaw;
 
 public class test {
@@ -56,7 +57,7 @@ public class test {
             }
 */
 
-            new OriLaw().run();
+            new Interpertation().run();
 
 
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
