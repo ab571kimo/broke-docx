@@ -7,6 +7,8 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.io.File;
 import java.io.FileReader;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +48,20 @@ public class Interpertation {
             Map Data = MapUtils.getMap(oriMap, "Data");
             Map D750 = new HashMap();
 
-            D750.put("RKB_RUL_NO",Data.get("ID"));
+            String RKB_RUL_NO = MapUtils.getString(Data,"ID");
+            String EDIT_TIME = MapUtils.getString(Data,"EditTime");
+
+            LocalDateTime dateTime = LocalDateTime.parse(EDIT_TIME);
+
+            // Define formatter for the desired output format
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+            // Format the date-time
+            String FLOW_NO = dateTime.format(formatter);
+
+
+            D750.put("RKB_RUL_NO",RKB_RUL_NO);
+            D750.put("FLOW_NO",FLOW_NO);
             D750.put("CASE",Data.get("Case"));
             D750.put("NO",Data.get("No"));
             D750.put("UPDATE_DATE",Data.get("Date"));
@@ -76,7 +91,7 @@ public class Interpertation {
             Map<String, String> Category = MapUtils.getMap(Data, "Category");
             D750.put("CATEGORY_ID", Category.get("ID"));
             D750.put("CATEGORY_NAME", Category.get("Name"));
-            D750.put("EDIT_TIME", Data.get("EditTime"));
+            D750.put("EDIT_TIME", EDIT_TIME);
 
             Map<String, String> AmendTag = MapUtils.getMap(Data, "AmendTag");
             D750.put("AMENT_ID", AmendTag.get("ID"));
@@ -84,6 +99,10 @@ public class Interpertation {
 
             D750List.add(D750);
             D751List.add(D750);
+
+            List<Map> AttachmentFiles = MapUtils.getObject(Data, "AttachmentFiles", new ArrayList<>());
+
+            new OriLaw().processFileList(RKB_RUL_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "00");
 
         }
 
