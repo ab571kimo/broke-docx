@@ -57,6 +57,7 @@ public class test {
             }
 */
 
+            //new OriLaw().run();
             new Interpertation().run();
 
 

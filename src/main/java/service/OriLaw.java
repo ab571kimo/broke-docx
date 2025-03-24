@@ -3,12 +3,10 @@ package service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import lombok.Data;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -70,21 +68,32 @@ public class OriLaw {
             //歷史法規
             D701List.add(D700);
 
+            int i = 1;
 
             //處理法規附件
             List<Map> ConversionFile = MapUtils.getObject(Data, "ConversionFile", new ArrayList<>());
             List<Map> AttachmentFiles = MapUtils.getObject(Data, "AttachmentFiles", new ArrayList<>());
 
             Map<String, List<Map>> rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, ConversionFile, "00");
+            //編號
+            for(Map map : rtnMap.get("D710List")){
+                map.put("SER_NO",i);
+                i++;
+            }
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
+
             }
             //歷史法規
             D711List.addAll(rtnMap.get("D710List"));
             Z600List.addAll(rtnMap.get("Z600List"));
 
             rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "01");
+            for(Map map : rtnMap.get("D710List")){
+                map.put("SER_NO",i);
+                i++;
+            }
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
@@ -127,6 +136,10 @@ public class OriLaw {
             //處理附件
             List<Map> theAttachmentFiles = lawArticlesMap.get("AttachmentFiles");
             rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, theAttachmentFiles, "02");
+            for(Map map : rtnMap.get("D710List")){
+                map.put("SER_NO",i);
+                i++;
+            }
             if (LatestVersion) {
                 //現行法規
                 D710List.addAll(rtnMap.get("D710List"));
@@ -168,22 +181,22 @@ public class OriLaw {
         D700.put("SOURCE_ID", Data.get("ID"));
 
         List<Map<String, String>> Unit = MapUtils.getObject(Data, "Unit", new ArrayList<>());
-        StringBuilder COMP_AUTH_ID = new StringBuilder();
-        StringBuilder COMP_AUTH_NAME = new StringBuilder();
+        StringBuilder UNIT_ID = new StringBuilder();
+        StringBuilder UNIT_NAME = new StringBuilder();
         for (Map map : Unit) {
-            COMP_AUTH_ID.append(map.get("ID")).append(',');
-            COMP_AUTH_NAME.append(map.get("Name")).append(',');
+            UNIT_ID.append(map.get("ID")).append(',');
+            UNIT_NAME.append(map.get("Name")).append(',');
         }
-        if (COMP_AUTH_ID.toString().endsWith(",")) {
-            COMP_AUTH_ID.deleteCharAt(COMP_AUTH_ID.length() - 1);
+        if (UNIT_ID.toString().endsWith(",")) {
+            UNIT_ID.deleteCharAt(UNIT_ID.length() - 1);
 
         }
-        if (COMP_AUTH_NAME.toString().endsWith(",")) {
-            COMP_AUTH_NAME.deleteCharAt(COMP_AUTH_NAME.length() - 1);
+        if (UNIT_NAME.toString().endsWith(",")) {
+            UNIT_NAME.deleteCharAt(UNIT_NAME.length() - 1);
 
         }
-        D700.put("COMP_AUTH_ID", COMP_AUTH_ID.toString());
-        D700.put("COMP_AUTH_NAME", COMP_AUTH_NAME.toString());
+        D700.put("UNIT_ID", UNIT_ID.toString());
+        D700.put("UNIT_NAME", UNIT_NAME.toString());
 
         D700.put("REASONS", Data.get("LegislativeReasons"));
 
@@ -431,13 +444,13 @@ public class OriLaw {
             String FileName = MapUtils.getString(map, "FileName");
             String FileExtension = MapUtils.getString(map, "FileExtension");
 
-            String FullName = FileName + '.' + FileExtension;
+            String FullName = FileID + '.' + FileExtension;
 
             //取得FILE_ID
-            String FILE_ID = UUID.randomUUID().toString();//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
+            String FILE_ID = "this_is_new";//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
 
-            //將舊檔案複製到指定位置 TODO
-            String ORI_FULL_PATH = ORI_FILE_PATH + FileName + '.' + FileExtension;
+            //將舊檔案複製到指定位置
+            String ORI_FULL_PATH = ORI_FILE_PATH + FullName;
             String NEW_FULL_PATH = FILE_PATH + FILE_ID + '.' + FileExtension;
             File orifile = new File(ORI_FULL_PATH);
             File newfile = new File(NEW_FULL_PATH);
@@ -476,5 +489,28 @@ public class OriLaw {
         rtnMap.put("D710List", D710List);
         return rtnMap;
     }
+
+    public List<Map> processRelaLawNos(String RKB_RUL_NO, String FLOW_NO, List<Map> RelaLawList) throws IOException {
+
+        List<Map> D752List = new ArrayList<>();
+
+        for (Map map : RelaLawList) {
+            Map D752 = new HashMap();
+            D752.put("COMP_ID", "00");
+            D752.put("RKB_RUL_NO", RKB_RUL_NO);
+            D752.put("FLOW_NO", FLOW_NO);
+
+            D752.put("RKB_EXT_NO", map.get("LawID"));
+            D752.put("SOURCE_ID", map.get("ID"));
+            D752.put("AMENT_DATE", map.get("AmendDate"));
+            D752.put("SER_NO", map.get("LawNo"));
+
+            D752List.add(D752);
+
+        }
+
+        return D752List;
+    }
+
 
 }
