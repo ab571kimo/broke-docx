@@ -1,14 +1,18 @@
 import java.io.*;
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import service.BrokeDocxService;
+import service.D06100;
 import service.Interpertation;
 import service.OriLaw;
+import utils.VirtualVo;
 
+@Slf4j
 public class test {
 
     public static void main(String[] args) {
@@ -57,8 +61,10 @@ public class test {
             }
 */
 
-            //new OriLaw().run();
-            new Interpertation().run();
+
+
+            new OriLaw().run();
+            //new Interpertation().run();
 
 
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
@@ -66,54 +72,109 @@ public class test {
             FileInputStream inputStream = new FileInputStream(file);
             BrokeDocxService BreakDocxService = new BrokeDocxService();
 
+            Map D600Map = new HashMap();
+            D600Map.put("COMP_ID","01");
+            D600Map.put("RKB_INR_NO","20250320000000");
+            D600Map.put("DIV_NO","0000000");
+            D600Map.put("DIV_NAME","國泰世華總部");
+            D600Map.put("INR_NAME","民法準則");
+            D600Map.put("ANN_DATE","2020-01-01");
+            D600Map.put("UPDATE_DATE","2025-02-01");
+            D600Map.put("ACTIVE","1");
+            D600Map.put("STATUS","10");
+            D600Map.put("FLOW_NO","20250320000000");
 
-            List<Map<String, String>> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
+            List<Map> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
 
             int x = 0;
-            for (Map<String, String> map : ORI_D620List) {
-                map.put("CONTENT_UUID", String.valueOf(x));
-                x++;
+            for (Map map : ORI_D620List) {
+                map.put("RKB_INR_NO","20250320000000");
+                map.put("FLOW_NO","20250320000000");
+
             }
 
+            //new D06100().save(D600Map,null,ORI_D620List);
 
-            Map<String, Map<String, String>> oriMap = new LinkedHashMap<>();
-            for (Map<String, String> map : ORI_D620List) {
-                oriMap.put(map.get("CONTENT"), map);
-            }
+
+
+
 
             file = new File("D:\\國泰世華商業銀行_民法準則3.docx");
             encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
             inputStream = new FileInputStream(file);
             BreakDocxService = new BrokeDocxService();
-            List<Map<String, String>> NEW_D620List = BreakDocxService.brokeDocx(inputStream);
+            List<Map> NEW_D620List = BreakDocxService.brokeDocx(inputStream);
 
-            NEW_D620List.get(3).put("ORI_CONTENT_UUID", "3");
+            NEW_D620List = new D06100().compareRKB_INR(ORI_D620List,NEW_D620List);
 
-            List<Map<String, String>> rtnList = BreakDocxService.compareRKB_INR(ORI_D620List, new ArrayList());
+            //List<Map<String, String>> rtnList = BreakDocxService.compareRKB_INR(ORI_D620List, new ArrayList());
 
+            List<Map> RealNweList = new ArrayList<>();
 
-            int o = 1;
-            for (Map<String, String> map : rtnList) {
-                map.put("SER_NO", Integer.toString(o));
-                o++;
+            for(Map map : NEW_D620List){
+                String PART_NAME = MapUtils.getString(map,"PART_NAME");
+                if(StringUtils.isNotBlank(PART_NAME)){
+                    RealNweList.add(map);
 
-                System.out.println(map);
-            }
-
-            List<Map> D620List = new ArrayList();
-
-            List<Map> D630List = new ArrayList();
-            for (Map map : D620List) {
-                String uuid = MapUtils.getString(map, "CONTENT_UUID");
-                if (StringUtils.isBlank(uuid)) {
-                    String newUUID = UUID.randomUUID().toString();
-                    map.put("CONTENT_UUID", newUUID);
-                    D630List.add(map);
                 }
             }
 
+            D600Map.put("RKB_INR_NO","20250320000000");
+            D600Map.put("FLOW_NO","20250320000099");
+            D600Map.put("UPDATE_DATE","2025-04-01");
+
+            for (Map map : RealNweList) {
+                map.put("RKB_INR_NO","20250320000000");
+                map.put("FLOW_NO","20250320000099");
+
+            }
+
+            //new D06100().save(D600Map,null,RealNweList);
+
+
+            //站存件
+            file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
+            encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
+            inputStream = new FileInputStream(file);
+            BreakDocxService = new BrokeDocxService();
+            NEW_D620List = BreakDocxService.brokeDocx(inputStream);
+
+            D600Map.put("COMP_ID","01");
+            D600Map.put("RKB_INR_NO","20250320000000");
+            D600Map.put("UPDATE_DATE","2025-07-01");
+            D600Map.put("ACTIVE","1");
+            D600Map.put("STATUS","01");
+            D600Map.put("FLOW_NO","20250320000999");
+
+            for (Map map : NEW_D620List) {
+                map.put("RKB_INR_NO","20250320000000");
+                map.put("FLOW_NO","20250320000999");
+            }
+
+
+            VirtualVo D620 = new D06100().getVo("DBXR", "DTXRD699");
+            D620.setCondition("COMP_ID","01");
+            D620.setCondition("RKB_INR_NO","20250320000000");
+            D620.setCondition("FLOW_NO","20250320000099");
+            D620.setColumn("*");
+            List<Map> theORI_D620List = D620.select(false);
+
+            NEW_D620List = new D06100().compareRKB_INR(theORI_D620List,NEW_D620List);
+
+            RealNweList = new ArrayList<>();
+
+            for(Map map : NEW_D620List){
+                String PART_NAME = MapUtils.getString(map,"PART_NAME");
+                if(StringUtils.isNotBlank(PART_NAME)){
+                    RealNweList.add(map);
+
+                }
+            }
+
+            //new D06100().save(D600Map,null,RealNweList);
 
         } catch (Exception e) {
+            log.debug("",e);
             System.out.print(e.getMessage());
         }
 

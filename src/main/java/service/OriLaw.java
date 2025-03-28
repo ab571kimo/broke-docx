@@ -3,15 +3,22 @@ package service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import utils.VirtualVo;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Timestamp;
+import java.sql.*;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 public class OriLaw {
 
     Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -149,7 +156,46 @@ public class OriLaw {
             Z600List.addAll(rtnMap.get("Z600List"));
 
         }
+
+        Connection conn  = getConnection();
+        conn.setAutoCommit(false);
+
+        try {
+
+
+
+            VirtualVo D700 = new VirtualVo(conn,"DBXR", "DTXRD700");
+            D700.insertByBatch(D700List, false);
+
+            VirtualVo D701 = new VirtualVo(conn,"DBXR", "DTXRD701");
+            D701.insertByBatch(D701List, false);
+            VirtualVo D720 = new VirtualVo(conn,"DBXR", "DTXRD720");
+
+            D720.insertByBatch(D720List, false);
+            VirtualVo D721 = new VirtualVo(conn,"DBXR", "DTXRD721");
+            D721.insertByBatch(D721List, false);
+
+            VirtualVo D730 = new VirtualVo(conn,"DBXR", "DTXRD730");
+            D730.insertByBatch(D730List, false);
+
+            VirtualVo D800 = new VirtualVo(conn,"DBXR", "DTXRD800");
+            D800.insertByBatch(D800List, false);
+
+            conn.commit();
+        }catch(Exception e){
+            log.debug("",e);
+            conn.rollback();
+        }
+
         int x = 0;
+    }
+
+    private static final String JDBC_URL = "jdbc:db2://localhost:50000/testdb";
+    private static final String USERNAME = "db2inst1";
+    private static final String PASSWORD = "INSTPW";
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
     }
 
     public Map dataToD700(String RKB_EXT_NO, String FLOW_NO, Map Data) {
@@ -165,17 +211,19 @@ public class OriLaw {
         D700.put("LEVEL_ID", Level.get("ID"));
         D700.put("LEVEL_NAME", Level.get("Name"));
 
-        D700.put("ANN_DATE", Data.get("AnnounceDate"));
-        D700.put("UPDATE_DATE", Data.get("AmendDate"));
+        D700.put("ANN_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"AnnounceDate")));
+        D700.put("UPDATE_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"AmendDate")));
 
         Map<String, String> Valid = MapUtils.getMap(Data, "Valid");
-        D700.put("VALID_DATE", Valid.get("ID"));
-        D700.put("VALID_MEMO", Valid.get("Name"));
+        D700.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid,"Date")));
+        D700.put("VALID_MEMO", Valid.get("Memo"));
 
         Map<String, String> AmendTag = MapUtils.getMap(Data, "AmendTag");
         D700.put("AMENT_ID", AmendTag.get("ID"));
         D700.put("AMENT_NAME", AmendTag.get("Name"));
-        D700.put("REPEAL_DATE", Data.get("RepealDate"));
+
+        D700.put("REPEAL_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"RepealDate")));
+
         D700.put("REG_HISTORY", Data.get("Source"));
         D700.put("FOREWORD", Data.get("Foreword"));
         D700.put("SOURCE_ID", Data.get("ID"));
@@ -289,36 +337,40 @@ public class OriLaw {
             D720.put("RKB_EXT_NO", RKB_EXT_NO);
             D720.put("SER_NO", map.get("No"));
 
-            D720.put("PART", levelMap.get(1));
+            D720.put("PART_NO)", levelMap.get(1));
             D720.put("PART_NAME", levelMap.get("1_Title"));
             D720.put("PART_MEMO", levelMap.get("1_Data"));
-            D720.put("CHAPTER", levelMap.get(2));
+            D720.put("CHAPTER_NO", levelMap.get(2));
             D720.put("CHAPTER_NAME", levelMap.get("2_Title"));
             D720.put("CHAPTER_MEMO", levelMap.get("2_Data"));
-            D720.put("SECTION", levelMap.get(3));
+            D720.put("SECTION_NO", levelMap.get(3));
             D720.put("SECTION_NAME", levelMap.get("3_Title"));
             D720.put("SECTION_MEMO", levelMap.get("3_Data"));
-            D720.put("CLAUSE", levelMap.get(4));
+            D720.put("CLAUSE_NO", levelMap.get(4));
             D720.put("CLAUSE_NAME", levelMap.get("4_Title"));
             D720.put("CLAUSE_MEMO", levelMap.get("4_Data"));
-            D720.put("ITEM", levelMap.get(5));
+            D720.put("ITEM_NO", levelMap.get(5));
             D720.put("ITEM_NAME", levelMap.get("5_Title"));
             D720.put("ITEM_MEMO", levelMap.get("5_Data"));
 
 
             //條號和註解法源沒拆分
-            D720.put("ARTICLE", levelMap.get(9));
+            D720.put("ARTICLE_NO", levelMap.get(9));
             D720.put("ARTICLE_NAME", map.get("Title"));
             D720.put("ARTICLE_MEMO", map.get("Title"));
 
             //條文內容
             D720.put("CONTENT", map.get("Data"));
 
-            D720.put("IS_AMEND", map.get("IsAmend"));
+            D720.put("IS_AMEND", MapUtils.getBoolean(map,"IsAmend") );
 
             List<String> HisList = (List<String>) map.get("HisNo");
             D720.put("HIS_SER_NO", HisList.size() == 0 ? "" : HisList.get(0));
-            D720.put("EDIT_TIME", map.get("EditTime"));
+            D720.put("EDIT_TIME", map.get("EditTime")); //TODO
+
+            Map<String, String> Valid = MapUtils.getMap(map, "Valid");
+            D720.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid,"Date")));
+            D720.put("VALID_MEMO", Valid.get("Memo"));
 
             D720.put("LST_PROC_ID", "XRR0_B071");
             D720.put("LST_PROC_NAME", "XRR0_B071");
@@ -512,5 +564,19 @@ public class OriLaw {
         return D752List;
     }
 
+    public Date yyyyMMddAddDash(String inputDate) {
 
+        if(StringUtils.isBlank(inputDate)){
+            return null;
+        }
+
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        String outputDate = LocalDate.parse((inputDate), inputFormatter).format(outputFormatter);
+
+        Date.valueOf(outputDate);
+
+        return Date.valueOf(outputDate);
+    }
 }
