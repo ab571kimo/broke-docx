@@ -30,10 +30,6 @@ public class Interpertation {
         List<Map<String, Object>> ori = new Gson().fromJson(reader, new TypeToken<List<Map<String, Object>>>() {
         }.getType());
 
-        //紀錄已存在函釋
-        Map<String, Map> RULMap = new HashMap();
-        Map<String, List<Map>> RULFileMap = new HashMap();
-
         //只有新增的函釋需要送比對
         List<Map> D750List = new ArrayList();
         List<Map> D751List = new ArrayList();
@@ -52,11 +48,7 @@ public class Interpertation {
             String EDIT_TIME = MapUtils.getString(Data, "EditTime");
 
             LocalDateTime dateTime = LocalDateTime.parse(EDIT_TIME);
-
-            // Define formatter for the desired output format
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-
-            // Format the date-time
             String FLOW_NO = dateTime.format(formatter);
 
             D750.put("COMP_ID", "00");
@@ -98,22 +90,28 @@ public class Interpertation {
             D750.put("AMENT_NAME", AmendTag.get("Name"));
 
             //都把前一版覆蓋
-            RULMap.put(RKB_RUL_NO, D750);
+            D750List.add(D750);
             //保留歷程
             D751List.add(D750);
+            Map D800Map = new OriLaw().mapToD800(D750);
+            D800Map.put("RKB_LAW_NO", RKB_RUL_NO);
+            D800List.add(D800Map);
+
+
 
             List<Map> AttachmentFiles = MapUtils.getObject(Data, "AttachmentFiles", new ArrayList<>());
 
             int i = 1;
             Map<String, List<Map>> rtnMap = new OriLaw().processFileList(RKB_RUL_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "00");
             for (Map map : rtnMap.get("D710List")) {
+                map.put("RKB_RUL_NO ", RKB_RUL_NO);
                 map.put("SER_NO", i);
                 i++;
             }
 
             List<Map> theD750List = rtnMap.get("D710List");
             //都把前一版覆蓋
-            RULFileMap.put(RKB_RUL_NO, theD750List);
+            D760List.addAll(theD750List);
             //保留歷程
             D761List.addAll(theD750List);
 
@@ -127,22 +125,6 @@ public class Interpertation {
             D752List.addAll(theD752List);
         }
 
-        //處理D750
-        for (String key : RULMap.keySet()) {
-            Map theMap = RULMap.get(key);
-            String RKB_RUL_NO = MapUtils.getString(theMap, "RKB_RUL_NO");
-
-            //整理案件歷程，送比對
-            Map D800Map = new OriLaw().mapToD800(theMap);
-            D800Map.put("RKB_LAW_NO", RKB_RUL_NO);
-            D800List.add(D800Map);
-            D750List.add(theMap);
-        }
-
-        //處理D760
-        for (String key : RULFileMap.keySet()) {
-            D760List.addAll(RULFileMap.get(key));
-        }
 
         int x = 0;
     }

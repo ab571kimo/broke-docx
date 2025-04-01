@@ -6,10 +6,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import service.BrokeDocxService;
-import service.D06100;
-import service.Interpertation;
-import service.OriLaw;
+import service.*;
 import utils.VirtualVo;
 
 @Slf4j
@@ -63,9 +60,9 @@ public class test {
 
 
 
-            new OriLaw().run();
+            //new OriLaw().run();
             //new Interpertation().run();
-
+            new R0B070().run();
 
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
             byte[] encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));

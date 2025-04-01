@@ -74,7 +74,7 @@ public class VirtualVo {
 		connection = conn;
 
 		PreparedStatement pstmt = connection
-				.prepareStatement("SELECT * FROM SYSCAT.COLUMNS WHERE TABSCHEMA = ? AND TABNAME = ?");
+				.prepareStatement("SELECT COLNAME,KEYSEQ,TYPENAME,NULLS,LENGTH,REMARKS FROM SYSCAT.COLUMNS WHERE TABSCHEMA = ? AND TABNAME = ?");
 
 		pstmt.setString(1, theSCHEMA);
 		pstmt.setString(2, theTABLENAME);

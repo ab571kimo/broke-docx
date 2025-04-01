@@ -12,6 +12,7 @@ import utils.VirtualVo;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.sql.*;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -388,7 +389,7 @@ public class OriLaw {
         return rtnMap;
     }
 
-    private void sortLawArticles(List<Map> LawArticles) {
+    void sortLawArticles(List<Map> LawArticles) {
         Collections.sort(LawArticles, new Comparator<Map>() {
             @Override
             public int compare(Map m1, Map m2) {
@@ -578,5 +579,68 @@ public class OriLaw {
         Date.valueOf(outputDate);
 
         return Date.valueOf(outputDate);
+    }
+
+    public Map<String, List<Map>> downloadFileList(String RKB_EXT_NO, String FLOW_NO, String FILE_PATH, List<Map> fileList, String FILE_TYPE) throws IOException {
+
+        Map<String, List<Map>> rtnMap = new HashMap();
+        List<Map> D710List = new ArrayList<>();
+        List<Map> Z600List = new ArrayList<>();
+
+        for (Map map : fileList) {
+            Map D710 = new LinkedHashMap();
+            D710.put("COMP_ID", "00");
+
+            String FileID = MapUtils.getString(map, "FileID");
+            String FileName = MapUtils.getString(map, "FileName");
+            String FileExtension = MapUtils.getString(map, "FileExtension");
+            FileExtension = FileExtension.replaceFirst("^\\.+", "");
+
+            String FullName = FileID + '.' + FileExtension;
+
+            //取得FILE_ID
+            String FILE_ID = "this_is_new";//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
+
+            //將舊檔案複製到指定位置
+            String NEW_FULL_PATH = FILE_PATH + FILE_ID + '.' + FileExtension;
+
+            String url = MapUtils.getString(map, "FileUrl");
+            //File orifile = new File(url);
+            File newfile = new File(NEW_FULL_PATH);
+            FileUtils.copyURLToFile(new URL(url), newfile);
+            //FileUtils.copyFile(orifile, newfile);
+
+            D710.put("RKB_EXT_NO", RKB_EXT_NO);
+            D710.put("FILE_ID", FILE_ID);
+            D710.put("FILE_NAME", FullName);
+            D710.put("FILE_TYPE", FILE_TYPE);
+            D710.put("ARTICLE_SOURCE", map.get("ARTICLE_SOURCE"));
+            D710.put("IS_CONTENT", map.get("isContentFile"));
+            D710.put("FILE_URL", map.get("FileUrl"));
+            //D710.put("SER_NO", i);
+            D710.put("SOURCE_ID", map.get("FileID"));
+            D710.put("EDIT_TIME", map.get("EditTime"));
+            D710.put("LST_PROC_ID", "XRR0_B071");
+            D710.put("LST_PROC_NAME", "XRR0_B071");
+            D710.put("LST_PROC_DIV_NO", "XRR0_B071");
+            D710.put("LST_PROC_DIV_NAME", "XRR0_B071");
+            D710.put("LST_PROC_TIME", now);
+
+            D710.put("FLOW_NO", FLOW_NO);
+            D710List.add(D710);
+
+            Map Z600 = new LinkedHashMap();
+            Z600.put("RKB_LAW_NO", RKB_EXT_NO);
+            Z600.put("FILE_ID", FILE_ID);
+            Z600.put("FILE_PATH", FILE_PATH);
+            Z600.put("FILE_EXT", FileExtension);
+            Z600.put("CREATE_TIME", now);
+            Z600List.add(Z600);
+
+        }
+
+        rtnMap.put("Z600List", Z600List);
+        rtnMap.put("D710List", D710List);
+        return rtnMap;
     }
 }
