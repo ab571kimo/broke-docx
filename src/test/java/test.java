@@ -20,7 +20,7 @@ public class test {
         try {
 
             //String folderPath = "D:/OneDrive_1_2025-3-14 - 複製/";  // 修改為你的目錄路徑
- /*           String folderPath = "D:/OneDrive_1_2025-3-14 - 複製/";  // 修改為你的目錄路徑
+            String folderPath = "D:/OneDrive_1_2025-4-2/";  // 修改為你的目錄路徑
             String outputFilePath = folderPath + File.separator + "merged_output.txt";
 
             File folder = new File(folderPath);
@@ -38,13 +38,13 @@ public class test {
                 BrokeDocxService BreakDocxService = new BrokeDocxService();
 
 
-                List<Map<String, String>> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
+                List<Map> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
 
                 String filePath = folderPath + file.getName() +".txt";
 
                 // 寫入 TXT 檔案
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                    for (Map<String, String> map : ORI_D620List) {
+                    for (Map map : ORI_D620List) {
                         // 每個 Map 寫成一行
                         writer.write(map.toString());
                         writer.newLine(); // 換行
@@ -56,13 +56,15 @@ public class test {
                 }
 
             }
-*/
+
 
 
 
             //new OriLaw().run();
             //new Interpertation().run();
-            new R0B070().run();
+            //new R0B070().run();
+
+            /*
 
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
             byte[] encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
@@ -169,6 +171,8 @@ public class test {
             }
 
             //new D06100().save(D600Map,null,RealNweList);
+
+*/
 
         } catch (Exception e) {
             log.debug("",e);

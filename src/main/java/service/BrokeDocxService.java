@@ -16,7 +16,7 @@ public class BrokeDocxService {
         String partStr = "^第[零一二三四五六七八九十]{1,3}編";
         String chapterStr = "^第[零一二三四五六七八九十]{1,3}章";
         String sectionStr = "^第[零一二三四五六七八九十]{1,3}節";
-        String articleStr = "^第[0-9|\\-]{1,6}條";
+        String articleStr = "^第[0-9|\\-|零一二三四五六七八九十]{1,6}條";
 
         Pattern partReg = Pattern.compile(partStr);
         Pattern chapterReg = Pattern.compile(chapterStr);
