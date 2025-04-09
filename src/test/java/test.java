@@ -19,6 +19,8 @@ public class test {
         //D:\人壽供測試用內規\供測試用內規\紅利分配辦法.docx
         try {
 
+            /*
+
             //String folderPath = "D:/OneDrive_1_2025-3-14 - 複製/";  // 修改為你的目錄路徑
             String folderPath = "D:/OneDrive_1_2025-4-2/";  // 修改為你的目錄路徑
             String outputFilePath = folderPath + File.separator + "merged_output.txt";
@@ -57,12 +59,29 @@ public class test {
 
             }
 
+*/
 
 
+            //D08000 theD0D8000 = new D08000();
+
+            //try {
+            //    theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "01", "選擇覆核人員", "選擇覆核人員");
+            //    theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "02", "提交覆核人員", "提交覆核人員");
+//
+            //     theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "91", "退回承辦", "退回承辦");
+           //     theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "02", "重新提交覆核人員", "重新提交覆核人員");
+                //theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "10", "完成", "完成");
+           //     theD0D8000.getConn().commit();
+           // }catch (Exception e){
+            //    log.error(e.getMessage(),e);
+            //    theD0D8000.getConn().rollback();
+           // }
 
             //new OriLaw().run();
             //new Interpertation().run();
             //new R0B070().run();
+
+            new R0B070().queryRegHistory("00","FL000565","20091230000001","385e87c4-efe7-4b42-84b2-281cdc0a62e2");
 
             /*
 

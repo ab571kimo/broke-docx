@@ -59,9 +59,12 @@ public class VirtualVo {
 	private static final String USERNAME = "db2inst1";
 	private static final String PASSWORD = "INSTPW";
 
-	public static Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+	public Connection getConnection() throws SQLException {
+		return connection;
 	}
+
+
+
 	/**
 	 * 準備寫入TABLE
 	 * 

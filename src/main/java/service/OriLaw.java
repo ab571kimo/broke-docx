@@ -31,7 +31,7 @@ public class OriLaw {
         String FILE_PATH = "D:/testRKB/File2/"; //XR_Z10600.parseFILE_PATH("XRR0B071"); TODO
 
         //每一份檔案代表一部法規，內含多版本
-        File fileJ = new File("D:\\FL000565.json");
+        File fileJ = new File("D:\\Law02.json"); //Law01 FL000565
 
         JsonReader reader = new JsonReader(new FileReader(fileJ));
 
@@ -49,6 +49,7 @@ public class OriLaw {
         List<Map> D721List = new ArrayList();
         List<Map> D730List = new ArrayList();
         List<Map> D800List = new ArrayList();
+        List<Map> D810List = new ArrayList();
         List<Map> Z600List = new ArrayList();
 
         List<Map> oriLawList = new ArrayList();
@@ -69,9 +70,10 @@ public class OriLaw {
             if (LatestVersion) {
                 //現行法規額外處理
                 D700List.add(D700);
-                D800List.add(mapToD800(D700));
+                D800List.add(mapToD800("00",RKB_EXT_NO,FLOW_NO,"XRR0_B071"));
+                D810List.add(mapToD810("00",RKB_EXT_NO,FLOW_NO));
                 //這筆資料待關聯
-                D700.put("STATUS","02");
+                D700.put("STATUS", "02");
             }
             //歷史法規
             D701List.add(D700);
@@ -84,8 +86,8 @@ public class OriLaw {
 
             Map<String, List<Map>> rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, ConversionFile, "00");
             //編號
-            for(Map map : rtnMap.get("D710List")){
-                map.put("SER_NO",i);
+            for (Map map : rtnMap.get("D710List")) {
+                map.put("SER_NO", i);
                 i++;
             }
             if (LatestVersion) {
@@ -98,8 +100,8 @@ public class OriLaw {
             Z600List.addAll(rtnMap.get("Z600List"));
 
             rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, AttachmentFiles, "01");
-            for(Map map : rtnMap.get("D710List")){
-                map.put("SER_NO",i);
+            for (Map map : rtnMap.get("D710List")) {
+                map.put("SER_NO", i);
                 i++;
             }
             if (LatestVersion) {
@@ -144,8 +146,8 @@ public class OriLaw {
             //處理附件
             List<Map> theAttachmentFiles = lawArticlesMap.get("AttachmentFiles");
             rtnMap = this.processFileList(RKB_EXT_NO, FLOW_NO, FILE_PATH, ORI_FILE_PATH, theAttachmentFiles, "02");
-            for(Map map : rtnMap.get("D710List")){
-                map.put("SER_NO",i);
+            for (Map map : rtnMap.get("D710List")) {
+                map.put("SER_NO", i);
                 i++;
             }
             if (LatestVersion) {
@@ -158,33 +160,35 @@ public class OriLaw {
 
         }
 
-        Connection conn  = getConnection();
+        Connection conn = getConnection();
         conn.setAutoCommit(false);
 
         try {
 
 
-
-            VirtualVo D700 = new VirtualVo(conn,"DBXR", "DTXRD700");
+            VirtualVo D700 = new VirtualVo(conn, "DBXR", "DTXRD700");
             D700.insertByBatch(D700List, false);
 
-            VirtualVo D701 = new VirtualVo(conn,"DBXR", "DTXRD701");
+            VirtualVo D701 = new VirtualVo(conn, "DBXR", "DTXRD701");
             D701.insertByBatch(D701List, false);
-            VirtualVo D720 = new VirtualVo(conn,"DBXR", "DTXRD720");
+            VirtualVo D720 = new VirtualVo(conn, "DBXR", "DTXRD720");
 
             D720.insertByBatch(D720List, false);
-            VirtualVo D721 = new VirtualVo(conn,"DBXR", "DTXRD721");
+            VirtualVo D721 = new VirtualVo(conn, "DBXR", "DTXRD721");
             D721.insertByBatch(D721List, false);
 
-            VirtualVo D730 = new VirtualVo(conn,"DBXR", "DTXRD730");
+            VirtualVo D730 = new VirtualVo(conn, "DBXR", "DTXRD730");
             D730.insertByBatch(D730List, false);
 
-            VirtualVo D800 = new VirtualVo(conn,"DBXR", "DTXRD800");
+            VirtualVo D800 = new VirtualVo(conn, "DBXR", "DTXRD800");
             D800.insertByBatch(D800List, false);
 
+            VirtualVo D810 = new VirtualVo(conn, "DBXR", "DTXRD810");
+            D810.insertByBatch(D810List, false);
+
             conn.commit();
-        }catch(Exception e){
-            log.debug("",e);
+        } catch (Exception e) {
+            log.debug("", e);
             conn.rollback();
         }
 
@@ -212,18 +216,18 @@ public class OriLaw {
         D700.put("LEVEL_ID", Level.get("ID"));
         D700.put("LEVEL_NAME", Level.get("Name"));
 
-        D700.put("ANN_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"AnnounceDate")));
-        D700.put("UPDATE_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"AmendDate")));
+        D700.put("ANN_DATE", yyyyMMddAddDash(MapUtils.getString(Data, "AnnounceDate")));
+        D700.put("UPDATE_DATE", yyyyMMddAddDash(MapUtils.getString(Data, "AmendDate")));
 
         Map<String, String> Valid = MapUtils.getMap(Data, "Valid");
-        D700.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid,"Date")));
+        D700.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid, "Date")));
         D700.put("VALID_MEMO", Valid.get("Memo"));
 
         Map<String, String> AmendTag = MapUtils.getMap(Data, "AmendTag");
         D700.put("AMENT_ID", AmendTag.get("ID"));
         D700.put("AMENT_NAME", AmendTag.get("Name"));
 
-        D700.put("REPEAL_DATE", yyyyMMddAddDash(MapUtils.getString(Data,"RepealDate")));
+        D700.put("REPEAL_DATE", yyyyMMddAddDash(MapUtils.getString(Data, "RepealDate")));
 
         D700.put("REG_HISTORY", Data.get("Source"));
         D700.put("FOREWORD", Data.get("Foreword"));
@@ -268,13 +272,13 @@ public class OriLaw {
         return D700;
     }
 
-    public Map mapToD800(Map D700Map) {
+    public Map mapToD800(String COMP_ID, String RKB_LAW_NO, String FLOW_NO, String BATCH_NAME) {
 
         //處理D700
         Map D800 = new HashMap();
-        D800.put("COMP_ID", D700Map.get("COMP_ID"));
-        D800.put("RKB_LAW_NO", D700Map.get("RKB_EXT_NO"));
-        D800.put("FLOW_NO", D700Map.get("FLOW_NO"));
+        D800.put("COMP_ID", COMP_ID);
+        D800.put("RKB_LAW_NO", RKB_LAW_NO);
+        D800.put("FLOW_NO", FLOW_NO);
         D800.put("FLOW_STATUS", "03");
 
         D800.put("TODO_EMP_ID", "SYSTEM");
@@ -283,17 +287,28 @@ public class OriLaw {
         D800.put("TODO_DIV_NAME", "SYSTEM");
 
         D800.put("CREATE_TIME", now);
-        D800.put("CREATE_EMP_ID", "XRR0_B071");
-        D800.put("CREATE_EMP_NAME", "XRR0_B071");
-        D800.put("CREATE_DIV_NO", "XRR0_B071");
-        D800.put("CREATE_DIV_NAME", "XRR0_B071");
+        D800.put("CREATE_EMP_ID", BATCH_NAME);
+        D800.put("CREATE_EMP_NAME", BATCH_NAME);
+        D800.put("CREATE_DIV_NO", BATCH_NAME);
+        D800.put("CREATE_DIV_NAME", BATCH_NAME);
 
-        D800.put("LST_PROC_ID", "XRR0_B071");
-        D800.put("LST_PROC_NAME", "XRR0_B071");
-        D800.put("LST_PROC_DIV_NO", "XRR0_B071");
-        D800.put("LST_PROC_DIV_NAME", "XRR0_B071");
-        D800.put("LST_PROC_TIME", now);
         return D800;
+    }
+
+    public Map mapToD810(String COMP_ID, String RKB_LAW_NO, String FLOW_NO) {
+
+        //處理D700
+        Map D810 = new HashMap();
+        D810.put("COMP_ID", COMP_ID);
+        D810.put("RKB_LAW_NO", RKB_LAW_NO);
+        D810.put("FLOW_NO", FLOW_NO);
+        D810.put("FLOW_STATUS", "00");
+        D810.put("SER_NO", "1");
+        D810.put("SER_TYPE", "01");
+        D810.put("CAUSE", "法源新增");
+        D810.put("DESCRIP", "法源新增");
+
+        return D810;
     }
 
     public Map<String, List<Map>> lawArticlesToD720List(String RKB_EXT_NO, String FLOW_NO, List<Map> LawArticles) throws Exception {
@@ -363,14 +378,14 @@ public class OriLaw {
             //條文內容
             D720.put("CONTENT", map.get("Data"));
 
-            D720.put("IS_AMEND", MapUtils.getBoolean(map,"IsAmend") );
+            D720.put("IS_AMEND", MapUtils.getBoolean(map, "IsAmend"));
 
             List<String> HisList = (List<String>) map.get("HisNo");
             D720.put("HIS_SER_NO", HisList.size() == 0 ? "" : HisList.get(0));
             D720.put("EDIT_TIME", map.get("EditTime")); //TODO
 
             Map<String, String> Valid = MapUtils.getMap(map, "Valid");
-            D720.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid,"Date")));
+            D720.put("VALID_DATE", yyyyMMddAddDash(MapUtils.getString(Valid, "Date")));
             D720.put("VALID_MEMO", Valid.get("Memo"));
 
             D720.put("LST_PROC_ID", "XRR0_B071");
@@ -496,6 +511,7 @@ public class OriLaw {
             String FileID = MapUtils.getString(map, "FileID");
             String FileName = MapUtils.getString(map, "FileName");
             String FileExtension = MapUtils.getString(map, "FileExtension");
+            FileExtension = FileExtension.replaceFirst("^\\.+", "");
 
             String FullName = FileID + '.' + FileExtension;
 
@@ -511,7 +527,7 @@ public class OriLaw {
 
             D710.put("RKB_EXT_NO", RKB_EXT_NO);
             D710.put("FILE_ID", FILE_ID);
-            D710.put("FILE_NAME", FullName);
+            D710.put("FILE_NAME", FileName + '.' + FileExtension);
             D710.put("FILE_TYPE", FILE_TYPE);
             D710.put("ARTICLE_SOURCE", map.get("ARTICLE_SOURCE"));
             D710.put("IS_CONTENT", map.get("isContentFile"));
@@ -555,7 +571,7 @@ public class OriLaw {
 
             D752.put("RKB_EXT_NO", map.get("LawID"));
             D752.put("SOURCE_ID", map.get("ID"));
-            D752.put("AMENT_DATE", map.get("AmendDate"));
+            D752.put("AMENT_DATE", yyyyMMddAddDash(MapUtils.getString(map, "AmendDate")));
             D752.put("SER_NO", map.get("LawNo"));
 
             D752List.add(D752);
@@ -567,7 +583,7 @@ public class OriLaw {
 
     public Date yyyyMMddAddDash(String inputDate) {
 
-        if(StringUtils.isBlank(inputDate)){
+        if (StringUtils.isBlank(inputDate)) {
             return null;
         }
 
@@ -596,7 +612,7 @@ public class OriLaw {
             String FileExtension = MapUtils.getString(map, "FileExtension");
             FileExtension = FileExtension.replaceFirst("^\\.+", "");
 
-            String FullName = FileID + '.' + FileExtension;
+            String FullName = FileName + '.' + FileExtension;
 
             //取得FILE_ID
             String FILE_ID = "this_is_new";//XR_Z0Z002().getFILE_ID(DATE.today()); TODO
@@ -642,5 +658,23 @@ public class OriLaw {
         rtnMap.put("Z600List", Z600List);
         rtnMap.put("D710List", D710List);
         return rtnMap;
+    }
+
+    public  void putLST_PROC(String BATCH_NAME,Timestamp now,List<Map> reqList){
+        for(Map map : reqList){
+            map.put("LST_PROC_ID", BATCH_NAME);
+            map.put("LST_PROC_NAME", BATCH_NAME);
+            map.put("LST_PROC_DIV_NO", BATCH_NAME);
+            map.put("LST_PROC_DIV_NAME", BATCH_NAME);
+            map.put("LST_PROC_TIME", now);
+        }
+    }
+
+    public  void putLST_PROC(String BATCH_NAME,Timestamp now,Map map){
+            map.put("LST_PROC_ID", BATCH_NAME);
+            map.put("LST_PROC_NAME", BATCH_NAME);
+            map.put("LST_PROC_DIV_NO", BATCH_NAME);
+            map.put("LST_PROC_DIV_NAME", BATCH_NAME);
+            map.put("LST_PROC_TIME", now);
     }
 }
