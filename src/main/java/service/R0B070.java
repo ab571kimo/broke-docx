@@ -15,6 +15,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -243,7 +245,7 @@ public class R0B070 {
             String theFLOW_NO = MapUtils.getString(D701Map, "FLOW_NO");
             String UPDATE_DATE = MapUtils.getString(D701Map, "UPDATE_DATE");
             VirtualVo theD799 = new VirtualVo(conn, "DBXR", "DTXRD798");
-            theD799.setColumn(new String[]{"CONTENT_UUID", "ORI_CONTENT_UUID","CONTENT"});
+            theD799.setColumn(new String[]{"CONTENT_UUID", "ORI_CONTENT_UUID","CONTENT","REG_HISTORY","ARTICLE_NAME","ARTICLE_MEMO"});
             theD799.setCondition("COMP_ID", COMP_ID);
             theD799.setCondition("RKB_EXT_NO", RKB_EXT_NO);
             theD799.setCondition("FLOW_NO", theFLOW_NO);
@@ -256,8 +258,22 @@ public class R0B070 {
             if (!theCONTENT_UUID.equals(theORI_CONTENT_UUID)) {
                 //UUID有異動，更新沿革
                 Map map = new HashMap();
-                map.put("UPDATE_DATE", UPDATE_DATE);
+
+                DateTimeFormatter oriFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                LocalDate date = LocalDate.parse(UPDATE_DATE, oriFormat);
+                DateTimeFormatter newFormat;
+                if(StringUtils.isBlank(theORI_CONTENT_UUID)){
+                     newFormat = DateTimeFormatter.ofPattern("yyyy 年 MM 月 dd 日，初版");
+                }else{
+                     newFormat = DateTimeFormatter.ofPattern("yyyy 年 MM 月 dd 日，修正後條文");
+                }
+                String formattedDate = date.format(newFormat);
+                map.put("UPDATE_DATE", formattedDate);
                 map.put("CONTENT", D799Map.get("CONTENT"));
+                map.put("REG_HISTORY", D799Map.get("REG_HISTORY"));
+                map.put("ARTICLE_NAME", D799Map.get("ARTICLE_NAME"));
+                map.put("ARTICLE_MEMO", D799Map.get("ARTICLE_MEMO"));
+
                 rtnList.add(map);
             }
 

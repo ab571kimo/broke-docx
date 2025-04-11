@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.MapUtils;
@@ -82,6 +83,7 @@ public class test {
             //new R0B070().run();
 
             new R0B070().queryRegHistory("00","FL000565","20091230000001","385e87c4-efe7-4b42-84b2-281cdc0a62e2");
+
 
             /*
 
