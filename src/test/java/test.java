@@ -62,30 +62,37 @@ public class test {
 
 */
 
+/*
+            D08000 theD0D8000 = new D08000();
 
-            //D08000 theD0D8000 = new D08000();
-
-            //try {
-            //    theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "01", "選擇覆核人員", "選擇覆核人員");
-            //    theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "02", "提交覆核人員", "提交覆核人員");
+            try {
+                //theD0D8000.submitFlow("00", "FL085256", "20241203000001", "01", "選擇覆核人員", "選擇覆核人員");
+                //theD0D8000.submitFlow("00", "FL085256", "20241203000001", "02", "提交覆核人員", "提交覆核人員");
 //
-            //     theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "91", "退回承辦", "退回承辦");
-           //     theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "02", "重新提交覆核人員", "重新提交覆核人員");
+                  // theD0D8000.submitFlow("00", "FL085256", "20241203000001", "91", "退回承辦", "退回承辦");
+                //theD0D8000.submitFlow("00", "FL085256", "20241203000001", "02", "重新提交覆核人員", "重新提交覆核人員");
                 //theD0D8000.submitFlow("01", "20250407000000", "20250407000000", "10", "完成", "完成");
-           //     theD0D8000.getConn().commit();
-           // }catch (Exception e){
-            //    log.error(e.getMessage(),e);
-            //    theD0D8000.getConn().rollback();
-           // }
-
+                theD0D8000.getConn().commit();
+            }catch (Exception e){
+                log.error(e.getMessage(),e);
+                theD0D8000.getConn().rollback();
+            }
+*/
             //new OriLaw().run();
             //new Interpertation().run();
             //new R0B070().run();
 
-            new R0B070().queryRegHistory("00","FL000565","20091230000001","385e87c4-efe7-4b42-84b2-281cdc0a62e2");
+            //new R0B070().queryRegHistory("00","FL000565","20091230000001","385e87c4-efe7-4b42-84b2-281cdc0a62e2");
 
 
-            /*
+            File file = new File("D:\\test.docx");
+            byte[] encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
+            FileInputStream inputStream = new FileInputStream(file);
+            BrokeDocxService BreakDocxService = new BrokeDocxService();
+            List<Map> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
+            //new TestNumbering().run();
+
+/*
 
             File file = new File("D:\\國泰世華商業銀行_民法準則2.docx");
             byte[] encodedBytes = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
@@ -105,7 +112,7 @@ public class test {
             D600Map.put("FLOW_NO","20250320000000");
 
             List<Map> ORI_D620List = BreakDocxService.brokeDocx(inputStream);
-
+/*
             int x = 0;
             for (Map map : ORI_D620List) {
                 map.put("RKB_INR_NO","20250320000000");
