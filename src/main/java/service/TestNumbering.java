@@ -1,5 +1,6 @@
 package service;
 
+import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
@@ -18,12 +19,13 @@ public class TestNumbering {
 
     MultiKeyMap<BigInteger, Integer> numMap = new MultiKeyMap();
 
-    public String getNumLevel(XWPFParagraph paragraph,XWPFNumbering numbering){
+    public String getNumLevel(XWPFParagraph paragraph, XWPFNumbering numbering) {
 
         if (paragraph.getNumID() != null && numbering != null) {
             //存在自動編碼
             BigInteger numID = paragraph.getNumID();
             BigInteger ilvl = paragraph.getNumIlvl();
+            int start = getStartValueForLevel( numbering,  numID,  ilvl);
 
             // 取得對應的 AbstractNum
             XWPFNum num = numbering.getNum(numID);
@@ -39,6 +41,14 @@ public class TestNumbering {
                 // 取得當前的計數器值，並加一
                 Integer numVal = numMap.get(numID, ilvl);
                 numVal = (numVal == null ? 0 : numVal) + 1;
+
+                //若為上層的編碼，下層所有編碼都歸0
+                for (MultiKey<? extends BigInteger> key : numMap.keySet()) {
+                    if (key.getKey(0).equals(numID) && key.getKey(1).compareTo(ilvl) > 0) {
+                        numMap.put(key, 0);
+                    }
+                }
+
                 numMap.put(numID, ilvl, numVal);
 
                 //確認階層
@@ -46,17 +56,37 @@ public class TestNumbering {
                 Matcher matcher = pattern.matcher(lvlText);
 
                 String matched = "";
-                if(matcher.find()) {
+                if (matcher.find()) {
                     matched = matcher.group();
                 }
 
-
-                return lvlText.replace(matched, formatNumber(numVal, format));
+                lvlText = lvlText.replace(matched, formatNumber(numVal, format));
+                return lvlText;
 
             }
 
         }
         return "";
+    }
+
+    public static int getStartValueForLevel(XWPFNumbering numbering, BigInteger numId, BigInteger ilvl) {
+        try {
+            XWPFNum num = numbering.getNum(numId);
+            if (num == null) return 1;
+
+            CTNum ctNum = num.getCTNum();
+            for (CTNumLvl override : ctNum.getLvlOverrideList()) {
+                if (override.getIlvl().equals(ilvl)) {
+                    if (override.isSetStartOverride()) {
+                        return override.getStartOverride().getVal().intValue();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 可記錄 log 或忽略錯誤
+        }
+
+        return 1; // 預設起始值為 1
     }
 
     public static String formatNumber(int value, String numFmt) {

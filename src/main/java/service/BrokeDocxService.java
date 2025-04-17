@@ -60,7 +60,7 @@ public class BrokeDocxService {
 
         for (XWPFParagraph paragraph : paragraphList) {
 
-            String numText = testNumbering.getNumLevel(paragraph,numbering);
+            String numText = testNumbering.getNumLevel(paragraph, numbering);
 
             String text = paragraph.getText();
             if (StringUtils.isNotBlank(numText)) {
