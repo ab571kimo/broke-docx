@@ -25,7 +25,7 @@ public class TestNumbering {
             //存在自動編碼
             BigInteger numID = paragraph.getNumID();
             BigInteger ilvl = paragraph.getNumIlvl();
-            int start = getStartValueForLevel( numbering,  numID,  ilvl);
+            int start = getStartValueForLevel(numbering, numID, ilvl);
 
             // 取得對應的 AbstractNum
             XWPFNum num = numbering.getNum(numID);
@@ -38,6 +38,9 @@ public class TestNumbering {
                 String lvlText = lvl.getLvlText().getVal();
                 String format = lvl.getNumFmt().getVal().toString();
 
+                if (!numMap.containsKey(numID, ilvl) && start > 0) {
+                    numMap.put(numID, ilvl, start - 1);
+                }
                 // 取得當前的計數器值，並加一
                 Integer numVal = numMap.get(numID, ilvl);
                 numVal = (numVal == null ? 0 : numVal) + 1;
